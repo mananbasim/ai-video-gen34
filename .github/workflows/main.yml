@@ -1,0 +1,29 @@
+name: Generate AI Video
+on:
+  workflow_dispatch: # Isse aap button daba kar video bana sakenge
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Library
+        run: pip install gradio_client
+
+      - name: Run Video Script
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python run_ai.py
+
+      - name: Save Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-video-result
+          path: output_video.mp4
