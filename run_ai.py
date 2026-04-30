@@ -2,39 +2,33 @@ import os
 import shutil
 from gradio_client import Client
 
-def generate_video():
-    # GitHub Secrets se token uthana
+def generate():
     hf_token = os.getenv("HF_TOKEN")
-    
     try:
-        print("Hugging Face Space se connect ho raha hai...")
-        
-        # Hum 'KingNish/Instant-Video' use kar rahe hain jo kafi active rehta hai
-        # hf_token dene se priority milti hai
-        client = Client("KingNish/Instant-Video", hf_token=hf_token)
+        # Hum ek fast aur aksar chalne wala model use kar rahe hain
+        print("Model se connect ho raha hai...")
+        client = Client("ByteDance/AnimateDiff-Lightning", hf_token=hf_token)
 
-        print("AI Video generate ho rahi hai... Is mein 2 se 5 minute lag sakte hain.")
-        
-        # API ko request bhejna
+        print("Video generation start ho gayi hai (is mein 1-3 minute lag sakte hain)...")
+        # Is model ke liye parameters
         result = client.predict(
-            prompt="A majestic lion walking through a futuristic neon city, cinematic, 4k",
-            api_name="/generate_video"
+            "A majestic waterfall in a fantasy world, 4k, cinematic", # Prompt
+            "6-Step", # Infer steps
+            api_name="/generate"
         )
 
-        # Agar video ban gayi hai to usay copy karna
         if result:
-            shutil.copy(result, 'output_video.mp4')
-            print("Mubarak ho! Video successfully ban gayi hai aur 'output_video.mp4' ke naam se save ho gayi hai.")
+            # Result path check karna
+            video_path = result if isinstance(result, str) else result[0]
+            shutil.copy(video_path, 'output_video.mp4')
+            print("SUCCESS: Video ban gayi hai!")
         else:
-            print("Galti: Model ne koi result nahi diya.")
+            print("ERROR: Model ne koi file generate nahi ki.")
             exit(1)
 
     except Exception as e:
-        print(f"Error: {str(e)}")
-        # Agar ye space band ho to ye error print karega
-        if "PAUSED" in str(e):
-            print("Mashwara: Ye model abhi so raha hai (PAUSED). Kuch der baad try karein ya koi aur model use karein.")
+        print(f"FAILED: Error ye hai -> {str(e)}")
         exit(1)
 
 if __name__ == "__main__":
-    generate_video()
+    generate()
