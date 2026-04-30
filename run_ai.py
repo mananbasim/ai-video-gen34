@@ -1,27 +1,40 @@
 import os
+import shutil
 from gradio_client import Client
 
-try:
-    print("AI Model se connect ho raha hai...")
-    # Hum ek naya stable model use kar rahe hain
-    client = Client("prodia/fast-stable-diffusion") 
+def generate_video():
+    # GitHub Secrets se token uthana
+    hf_token = os.getenv("HF_TOKEN")
     
-    print("Video generation ki request bhej di hai...")
-    # Ye model sirf image banata hai pehle check karne ke liye ke API kaam kar rahi hai ya nahi
-    # Agar ye chal gaya to hum agle step pe video wala model lagayenge
-    result = client.predict(
-        "A cinematic mountain view, high resolution", # Prompt
-        "SDXL", # Model version
-        api_name="/predict"
-    )
+    try:
+        print("Hugging Face Space se connect ho raha hai...")
+        
+        # Hum 'KingNish/Instant-Video' use kar rahe hain jo kafi active rehta hai
+        # hf_token dene se priority milti hai
+        client = Client("KingNish/Instant-Video", hf_token=hf_token)
 
-    if result:
-        import shutil
-        shutil.copy(result, 'output_video.mp4')
-        print("Mubarak ho! File ban gayi hai.")
-    else:
-        print("Khaali result aaya hai.")
+        print("AI Video generate ho rahi hai... Is mein 2 se 5 minute lag sakte hain.")
+        
+        # API ko request bhejna
+        result = client.predict(
+            prompt="A majestic lion walking through a futuristic neon city, cinematic, 4k",
+            api_name="/generate_video"
+        )
 
-except Exception as e:
-    print(f"Masla ye aaya hai: {e}")
-    exit(1)
+        # Agar video ban gayi hai to usay copy karna
+        if result:
+            shutil.copy(result, 'output_video.mp4')
+            print("Mubarak ho! Video successfully ban gayi hai aur 'output_video.mp4' ke naam se save ho gayi hai.")
+        else:
+            print("Galti: Model ne koi result nahi diya.")
+            exit(1)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        # Agar ye space band ho to ye error print karega
+        if "PAUSED" in str(e):
+            print("Mashwara: Ye model abhi so raha hai (PAUSED). Kuch der baad try karein ya koi aur model use karein.")
+        exit(1)
+
+if __name__ == "__main__":
+    generate_video()
