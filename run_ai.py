@@ -1,34 +1,33 @@
 import os
-import shutil
 from gradio_client import Client
 
-def generate():
-    hf_token = os.getenv("HF_TOKEN")
-    try:
-        # Hum ek fast aur aksar chalne wala model use kar rahe hain
-        print("Model se connect ho raha hai...")
-        client = Client("ByteDance/AnimateDiff-Lightning", hf_token=hf_token)
-
-        print("Video generation start ho gayi hai (is mein 1-3 minute lag sakte hain)...")
-        # Is model ke liye parameters
-        result = client.predict(
-            "A majestic waterfall in a fantasy world, 4k, cinematic", # Prompt
-            "6-Step", # Infer steps
-            api_name="/generate"
-        )
-
-        if result:
-            # Result path check karna
-            video_path = result if isinstance(result, str) else result[0]
-            shutil.copy(video_path, 'output_video.mp4')
-            print("SUCCESS: Video ban gayi hai!")
-        else:
-            print("ERROR: Model ne koi file generate nahi ki.")
-            exit(1)
-
-    except Exception as e:
-        print(f"FAILED: Error ye hai -> {str(e)}")
-        exit(1)
-
-if __name__ == "__main__":
-    generate()
+try:
+    token = os.getenv("HF_TOKEN")
+    print(f"Token check: {'Token mil gaya' if token else 'Token NAHI mila'}")
+    
+    # Simple Image model for testing
+    print("Connecting to Test Model...")
+    client = Client("stabilityai/stable-diffusion-3-medium", hf_token=token)
+    
+    print("Generating a test image...")
+    result = client.predict(
+        prompt="A simple red apple",
+        negative_prompt="",
+        seed=0,
+        customize_seed=False,
+        width=512,
+        height=512,
+        guidance_scale=5,
+        num_inference_steps=20,
+        api_name="/infer"
+    )
+    
+    if result:
+        # Image result ko rename karna
+        import shutil
+        shutil.copy(result[0], 'output_video.mp4') # Naam wahi rakha taake workflow na badalna paray
+        print("SUCCESS: Test file ban gayi!")
+    
+except Exception as e:
+    print(f"ASLI ERROR YE HAI: {str(e)}")
+    exit(1)
